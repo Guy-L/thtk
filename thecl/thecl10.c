@@ -2095,106 +2095,151 @@ th10_compile(
     const thecl_t* ecl,
     FILE* out)
 {
-    long pos;
+	//Heavy commentary supplied only for the purpose of assessing the quality of this
+	//solution, as it was written by a beginner.
+	//The problem with this function comes from the impossibility of using fseek
+	//on a file stream when dealing with stdout. 
+	
+	//An initial solution to move the pointer was to write, 
+	//as needed, null data (to go forward) or \b (to go backwards). 
+	//However, this technique only applies if the output happens to be the terminal,
+	//meaning the addition of many ugly conditionals and opportunities for unintended behavior.
+	//https://stackoverflow.com/a/25329755/8387364
+	
+	//My new and current solution is to allocate memory and to dump the raw memory once we're done.
+	
+	void *mem;
+    long pos = 0;
+	long *p = &pos;
     unsigned int i;
     th10_header_t header = { "SCPT", 1, 0, 0, 0, ecl->sub_count, { 0 } };
     const th10_list_t anim_list = { "ANIM", ecl->anim_count };
     const th10_list_t ecli_list = { "ECLI", ecl->ecli_count };
     const th10_sub_t sub_header = { "ECLH", sizeof(th10_sub_t), { 0, 0 } };
     thecl_sub_t* sub;
+	
+	//We can know how much memory is necessary from the information above, thus we should calculate it to
+	//avoid dynamic allocation. This will add a limit to the potential size of compileable ECL files,
+	//which seats reasonably at, at the very least, 4 billion bytes.
+	
+	//Here is the very ugly calculation.
+	unsigned long int size = sizeof(th10_header_t) + sizeof(th10_list_t) + sizeof(anim_names); //todo last sizeof is wrong
+	if(size%4 != 0) size = size + 4 - size % 4;
+	size += sizeof(th10_list_t) + sizeof(ecli_names); //todo last sizeof is wrong
+	if(size%4 != 0) size = size + 4 - size % 4;
+	size += ecl->sub_count * sizeof(uint32_t);
+	
+	list_for_each(&ecl->subs, sub) {
+		if (sub->forward_declaration || sub->is_inline)
+            continue;
 
-    if (!file_seekable(out)) {
-        fprintf(stderr, "%s: output is not seekable\n", argv0);
-        return 0;
-    }
+        size += strlen(sub->name) + 1;
+	}
+	
+	if(size%4 != 0) size = size + 4 - size % 4;
+	
+	list_for_each(&ecl->subs, sub) {
+		if (sub->forward_declaration || sub->is_inline)
+            continue;
 
-    if (!file_write(out, &header, sizeof(th10_header_t)))
-        return 0;
-
-    header.include_offset = file_tell(out);
-
-    if (!file_write(out, &anim_list, sizeof(th10_list_t)))
-        return 0;
-    for (i = 0; i < ecl->anim_count; ++i) {
-        if (!file_write(out, ecl->anim_names[i], strlen(ecl->anim_names[i]) + 1))
-            return 0;
-    }
-
-    pos = file_tell(out);
-    if (pos % 4 != 0)
-        file_seek(out, pos + 4 - pos % 4);
-
-    if (!file_write(out, &ecli_list, sizeof(th10_list_t)))
-        return 0;
-    for (i = 0; i < ecl->ecli_count; ++i) {
-        if (!file_write(out, ecl->ecli_names[i], strlen(ecl->ecli_names[i]) + 1))
-            return 0;
-    }
-
-    pos = file_tell(out);
-    if (pos % 4 != 0)
-        file_seek(out, pos + 4 - pos % 4);
-
-    pos = file_tell(out);
+		size += sizeof(th10_sub_t);
+		list_for_each(&sub->instrs, instr) size += instr->size;
+	}
+	
+	size += 5;
+	//And some good measure bytes. TO BE REMOVED.
+	
+	mem = malloc(size);
+	if(mem == NULL){
+		fprintf(stderr, "%s: couldn't allocate memory", argv0);
+		return 0;
+	} 
+	
+	if(!new_write(mem, size, p, &header)) return 0;
+	header.include_offset = pos;
+	if(!new_write(mem, size, p, &anim_list)) return 0;
+	
+	for(i = 0; i < ecl->anim_count; ++i){
+		if(!new_write(mem, size, p, ecl->anim[i])) 
+			return 0; //todo im doing array pointers wrong lol
+	}
+	
+    if (pos % 4 != 0) pos = pos + 4 - pos % 4;
+	new_write(mem, size, p, &ecli_list);
+	
+	for(i = 0; i < ecl->ecli_count; ++i){ 
+		if(!new_write(mem, size, p, ecl->ecli_names[i])) 
+			return 0; //todo im doing array pointers wrong lol
+	}
+	
+    if (pos % 4 != 0) pos +=  4 - pos % 4;
     header.include_length = pos - header.include_offset;
-
-    file_seek(out, pos + ecl->sub_count * sizeof(uint32_t));
+	pos += ecl->sub_count * sizeof(uint32_t)
+	
 
     list_for_each(&ecl->subs, sub) {
         if (sub->forward_declaration || sub->is_inline)
             continue;
-
-        if (!file_write(out, sub->name, strlen(sub->name) + 1))
-            return 0;
+		
+		if(!new_write(mem, size, p, sub->name)) 
+			return 0;
     }
-
-    pos = file_tell(out);
-    if (pos % 4 != 0)
-        file_seek(out, pos + 4 - pos % 4);
+	
+    if (pos % 4 != 0) pos +=  4 - pos % 4;
 
     uint16_t max_opcode;
     /* TODO: Get max opcodes for the rest of the games */
     switch (ecl->version)
     {
-    case 14:
-        max_opcode = 1003;
-        break;
-    default:
-        max_opcode = 0xFFFFU;
-        break;
+		case 13:
+		case 14:
+		case 15:
+		case 16:
+		case 17:
+			max_opcode = 1003;
+			break;
+		case 143:
+			max_opcode = 1006;
+		case 165:
+			max_opcode = 1014;
+		default:
+			max_opcode = 0xFFFFU;
+			break;
     }
-
-    list_for_each(&ecl->subs, sub) {
+	
+	list_for_each(&ecl->subs, sub) {
         if (sub->forward_declaration || sub->is_inline)
             continue;
 
         thecl_instr_t* instr;
-        sub->offset = file_tell(out);
-        if (!file_write(out, &sub_header, sizeof(th10_sub_t)))
-            return 0;
-
-        list_for_each(&sub->instrs, instr) {
+        sub->offset = pos;
+		if(!new_write(mem, size, p, &sub_header)) 
+			return 0;
+		
+		list_for_each(&sub->instrs, instr){
             if (instr->id > max_opcode) {
                 fprintf(stderr, "%s: warning: opcode: id %hu was higher than the maximum %hu\n", argv0, instr->id, max_opcode);
             }
             unsigned char* data = th10_instr_serialize(ecl->version, sub, instr, &ecl->subs, ecl->no_warn);
-            if (!file_write(out, data, instr->size))
-                return 0;
+			if(!new_write(mem, size, p, data)) return 0; //size = instr->size !!
             free(data);
-        }
-    }
-
-    file_seek(out, 0);
-    if (!file_write(out, &header, sizeof(th10_header_t)))
-        return 0;
-
-    file_seek(out, header.include_offset + header.include_length);
-    list_for_each(&ecl->subs, sub) {
+		}
+	}
+	
+	pos = 0;
+	if(!new_write(mem, size, p, &header)) return 0;
+	pos = header.include_offset + header.include_length;
+	
+	list_for_each(&ecl->subs, sub) {
         if (sub->forward_declaration || sub->is_inline)
             continue;
-        if (!file_write(out, &sub->offset, sizeof(uint32_t)))
-            return 0;
-    }
+		if(!new_write(mem, size, p, &sub->offset)) 
+			return 0;
+	}
+
+	//And now, we write. No seeks required.
+    if (!file_write(out, mem, size))
+        return 0;
 
     return 1;
 }

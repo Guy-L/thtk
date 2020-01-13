@@ -56,6 +56,16 @@ int file_write(
     FILE* stream,
     const void* buffer,
     size_t size);
+	
+/* A helper method for writing into memory during compilation,
+   which prints an error message upon error.*/
+//TODO: rename and/or move.
+int new_write(
+	void* mem,
+	int memsize, 
+	long* pos, 
+	const void* buffer);
+
 
 /* Reads a stream until '\0'.  Returns -1 on error. */
 ssize_t file_read_asciiz(

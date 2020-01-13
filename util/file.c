@@ -110,6 +110,24 @@ file_write(
         return 1;
 }
 
+int
+new_write(
+	void* mem,
+	int memsize, 
+	long* pos,
+	const void* buffer)
+{
+	if(*pos + sizeof(*buffer) > memsize){
+		*((char *)ptr + *pos) = *buffer;
+		*pos += sizeof(*buffer);
+		return 1;
+	} else {
+        fprintf(stderr, "%s: writing error during compilation", argv0);
+		return 0;
+	}
+}
+
+
 ssize_t
 file_read_asciiz(
     FILE* stream,

@@ -371,7 +371,7 @@ main(int argc, char* argv[])
             exit(1);
         }
 
-        if (0 < argc) {
+        if (argc > 0) {
             current_input = argv[0];
             in = fopen(argv[0], "rb");
             if (!in) {
@@ -379,7 +379,8 @@ main(int argc, char* argv[])
                     argv0, argv[0], strerror(errno));
                 exit(1);
             }
-            if (1 < argc) {
+			
+            if (argc > 1) {
                 current_output = argv[1];
                 out = fopen(argv[1], "wb");
                 if (!out) {
@@ -398,13 +399,13 @@ main(int argc, char* argv[])
             thecl_t* ecl = module->parse(in, argv[0], version);
             if (!ecl)
                 exit(1);
-            module->compile(ecl, out);
+            module->compile(ecl, out); //TODO: 6-9
             thecl_free(ecl);
         } else if (mode == 'h') {
             thecl_t* ecl = module->parse(in, argv[0], version);
             if (!ecl)
                 exit(1);
-            module->create_header(ecl, out);
+            module->create_header(ecl, out); //TODO
             thecl_free(ecl);
         } else if (mode == 'd') {
 #ifdef WIN32
@@ -414,11 +415,12 @@ main(int argc, char* argv[])
             if (!ecl)
                 exit(1);
             module->trans(ecl);
-            module->dump(ecl, out);
+            module->dump(ecl, out); //TODO
             thecl_free(ecl);
         }
+		
         fclose(in);
-        fclose(out);
+        fclose(out); 
 
         if(g_was_error) {
           printf("%s: %s: there were errors.\n", argv0, argv[0]);
