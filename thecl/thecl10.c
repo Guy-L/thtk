@@ -2158,21 +2158,21 @@ th10_compile(
 		return 0;
 	} 
 	
-	if(!new_write(p, &header)) return 0;
+	if(!new_write(p, &header, sizeof(th10_header_t))) return 0;
 	header.include_offset = pos;
-	if(!new_write(p, &anim_list)) return 0;
+	if(!new_write(p, &anim_list, sizeof(th10_list_t))) return 0;
 	
 	for(i = 0; i < ecl->anim_count; ++i){
-		if(!new_write(p, ecl->anim[i])) 
-			return 0; //todo im doing array pointers wrong lol
+		if(!new_write(p, ecl->anim_names[i], strlen(ecl->anim_names[i]) + 1))
+			return 0; 
 	}
 	
     if (pos % 4 != 0) pos = pos + 4 - pos % 4;
-	new_write(p, &ecli_list);
+	new_write(p, &ecli_list, sizeof(th10_list_t));
 	
 	for(i = 0; i < ecl->ecli_count; ++i){ 
-		if(!new_write(p, ecl->ecli_names[i])) 
-			return 0; //todo im doing array pointers wrong lol
+		if(!new_write(p, ecl->ecli_names[i], strlen(ecl->ecli_names[i]) + 1))
+			return 0; 
 	}
 	
     if (pos % 4 != 0) pos +=  4 - pos % 4;
@@ -2184,7 +2184,7 @@ th10_compile(
         if (sub->forward_declaration || sub->is_inline)
             continue;
 		
-		if(!new_write(p, sub->name)) 
+		if(!new_write(p, sub->name, strlen(sub->name) + 1))
 			return 0;
     }
 	
@@ -2216,7 +2216,7 @@ th10_compile(
 
         thecl_instr_t* instr;
         sub->offset = pos;
-		if(!new_write(p, &sub_header)) 
+		if(!new_write(p, &sub_header, sizeof(th10_sub_t)))
 			return 0;
 		
 		list_for_each(&sub->instrs, instr){
@@ -2224,19 +2224,19 @@ th10_compile(
                 fprintf(stderr, "%s: warning: opcode: id %hu was higher than the maximum %hu\n", argv0, instr->id, max_opcode);
             }
             unsigned char* data = th10_instr_serialize(ecl->version, sub, instr, &ecl->subs, ecl->no_warn);
-			if(!new_write(p, data)) return 0; //size = instr->size !!
+			if(!new_write(p, data, instr->size)) return 0;
             free(data);
 		}
 	}
 	
 	pos = 0;
-	if(!new_write(p, &header)) return 0;
+	if(!new_write(p, &header, sizeof(th10_header_t))) return 0;
 	pos = header.include_offset + header.include_length;
 	
 	list_for_each(&ecl->subs, sub) {
         if (sub->forward_declaration || sub->is_inline)
             continue;
-		if(!new_write(p, &sub->offset)) 
+		if(!new_write(p, &sub->offset, sizeof(uint32_t)))
 			return 0;
 	}
 

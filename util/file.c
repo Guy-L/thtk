@@ -113,11 +113,12 @@ file_write(
 int
 new_write(
 	long* pos,
-	const void* buffer)
+	const void* buffer,
+	size_t size)
 {
 	if(*pos + sizeof(*buffer) < memsize){
-		*((char *)mem + *pos) = *buffer;
-		*pos += sizeof(*buffer);
+		memcpy((char *)mem + *pos, buffer, size);
+		*pos += size;
 		return 1;
 	} else {
         fprintf(stderr, "%s: writing error during compilation", argv0);
