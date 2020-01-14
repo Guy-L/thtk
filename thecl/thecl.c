@@ -314,8 +314,6 @@ main(int argc, char* argv[])
     argv[argc] = NULL;
 
     eclmap_rebuild(g_eclmap);
-	
-	fprintf(stdout, "I'm at 0\n");
 
     switch (version) {
     case 6:
@@ -350,9 +348,6 @@ main(int argc, char* argv[])
             exit(1);
         }
     }
-	
-	
-	fprintf(stdout, "I'm at 1\n");
 
     switch (mode)
     {
@@ -384,8 +379,6 @@ main(int argc, char* argv[])
                     argv0, argv[0], strerror(errno));
                 exit(1);
             }
-	
-			fprintf(stdout, "I'm at 2\n");
 			
             if (argc > 1) {
                 current_output = argv[1];
@@ -396,23 +389,22 @@ main(int argc, char* argv[])
                     fclose(in);
                     exit(1);
                 }
-				fprintf(stdout, "I'm at 2\n");
             }
         }
 		
-		fprintf(stdout, "I'm at 3\n");
+		fprintf(stdout, "I'm at 0\n");
 
         if (mode == 'c') {
 #ifdef WIN32
             (void)_setmode(fileno(stdout), _O_BINARY);
 #endif
-            thecl_t* ecl = module->parse(in, argv[0], version);
+            thecl_t* ecl = module->parse(in, current_input, version);
             if (!ecl)
                 exit(1);
             module->compile(ecl, out); //TODO: 6-9
             thecl_free(ecl);
         } else if (mode == 'h') {
-            thecl_t* ecl = module->parse(in, argv[0], version);
+            thecl_t* ecl = module->parse(in, current_input, version);
             if (!ecl)
                 exit(1);
             module->create_header(ecl, out); 
