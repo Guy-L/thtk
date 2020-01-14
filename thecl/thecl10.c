@@ -2155,6 +2155,7 @@ th10_compile(
 		memsize += sizeof(th10_sub_t);
 		list_for_each(&sub->instrs, instr) memsize += instr->size;
 	}
+	//----------------------------
 	
 	mem = malloc(memsize);
 	if(mem == NULL){
@@ -2246,7 +2247,8 @@ th10_compile(
 	//And now, we write. No seeks required.
     if (!file_write(out, mem, memsize))
         return 0;
-
+	
+	free(mem);
     return 1;
 }
 
