@@ -2185,7 +2185,7 @@ th10_compile(
 	
     if (pos % 4 != 0) pos +=  4 - pos % 4;
     header.include_length = pos - header.include_offset;
-	pos += ecl->sub_count * sizeof(uint32_t)
+	pos += ecl->sub_count * sizeof(uint32_t);
 	
 
     list_for_each(&ecl->subs, sub) {
