@@ -391,8 +391,6 @@ main(int argc, char* argv[])
                 }
             }
         }
-		
-		fprintf(stdout, "I'm at 0\n");
 
         if (mode == 'c') {
 #ifdef WIN32
