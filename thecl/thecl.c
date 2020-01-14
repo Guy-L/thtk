@@ -411,7 +411,7 @@ main(int argc, char* argv[])
 #ifdef WIN32
             (void)_setmode(fileno(stdin), _O_BINARY);
 #endif
-            thecl_t* ecl = module->open(in, version);
+            thecl_t* ecl = module->open(in, version); //TODO??
             if (!ecl)
                 exit(1);
             module->trans(ecl);

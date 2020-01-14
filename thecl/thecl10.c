@@ -1928,7 +1928,7 @@ th10_parse(
     state.path_stack = NULL;
     path_add(&state, filename);
 
-    yyin = in;
+    //yyin = in;
 
     if (yyparse(&state) != 0)
         return 0;
