@@ -2156,10 +2156,6 @@ th10_compile(
 		list_for_each(&sub->instrs, instr) memsize += instr->size;
 	}
 	
-	memsize += 5;
-	//And some good measure bytes. TO BE REMOVED.
-	//------------------------------------------
-	
 	mem = malloc(memsize);
 	if(mem == NULL){
 		fprintf(stderr, "%s: couldn't allocate memory", argv0);
