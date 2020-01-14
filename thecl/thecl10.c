@@ -2156,8 +2156,6 @@ th10_compile(
 		list_for_each(&sub->instrs, instr) memsize += instr->size;
 	}
 	
-	memsize = 0;
-	//Testing
 	//------------------------------------------
 	
 	mem = malloc(memsize);
