@@ -2250,7 +2250,7 @@ th10_compile(
 		free(mem);
         return 0;
 	}
-	if(!file_seekable(out)) fprintf(out, "\n%s: -------------------------\n", argv0);
+	if(!file_seekable(out)) fprintf(out, "\n");
 	
 	free(mem);
     return 1;
