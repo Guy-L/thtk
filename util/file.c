@@ -116,7 +116,7 @@ new_write(
 	const void* buffer)
 {
 	if(*pos + sizeof(*buffer) < memsize){
-		*((char *)ptr + *pos) = *buffer;
+		*((char *)mem + *pos) = *buffer;
 		*pos += sizeof(*buffer);
 		return 1;
 	} else {
