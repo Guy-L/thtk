@@ -2119,6 +2119,7 @@ th10_compile(
     const th10_list_t anim_list = { "ANIM", ecl->anim_count };
     const th10_list_t ecli_list = { "ECLI", ecl->ecli_count };
     const th10_sub_t sub_header = { "ECLH", sizeof(th10_sub_t), { 0, 0 } };
+    thecl_instr_t* instr;
     thecl_sub_t* sub;
 	
 	//We can know how much memory is necessary from the information above, thus we should calculate it to
@@ -2126,19 +2127,25 @@ th10_compile(
 	//which seats reasonably at, at the very least, 4 billion bytes.
 	
 	//Here is the very ugly calculation.
-	memsize = sizeof(th10_header_t) + sizeof(th10_list_t) + sizeof(anim_names); //todo last sizeof is wrong
-	if(memsize%4 != 0) memsize = memsize + 4 - memsize % 4;
-	memsize += sizeof(th10_list_t) + sizeof(ecli_names); //todo last sizeof is wrong
-	if(memsize%4 != 0) memsize = memsize + 4 - memsize % 4;
-	memsize += ecl->sub_count * sizeof(uint32_t);
+	memsize = sizeof(th10_header_t) + sizeof(th10_list_t);
 	
+	for(i = 0; i < ecl->anim_count; ++i)
+		memsize += strlen(ecl->anim_names[i]) + 1;
+	if(memsize%4 != 0) memsize = memsize + 4 - memsize % 4;
+	
+	memsize += sizeof(th10_list_t); 
+	
+	for(i = 0; i < ecl->ecli_count; ++i)
+		memsize += strlen(ecl->ecli_names[i]) + 1;
+	if(memsize%4 != 0) memsize = memsize + 4 - memsize % 4;
+	
+	memsize += ecl->sub_count * sizeof(uint32_t);
 	list_for_each(&ecl->subs, sub) {
 		if (sub->forward_declaration || sub->is_inline)
             continue;
 
         memsize += strlen(sub->name) + 1;
 	}
-	
 	if(memsize%4 != 0) memsize += 4 - memsize % 4;
 	
 	list_for_each(&ecl->subs, sub) {
@@ -2151,6 +2158,7 @@ th10_compile(
 	
 	memsize += 5;
 	//And some good measure bytes. TO BE REMOVED.
+	//------------------------------------------
 	
 	mem = malloc(memsize);
 	if(mem == NULL){
@@ -2214,7 +2222,6 @@ th10_compile(
         if (sub->forward_declaration || sub->is_inline)
             continue;
 
-        thecl_instr_t* instr;
         sub->offset = pos;
 		if(!new_write(p, &sub_header, sizeof(th10_sub_t)))
 			return 0;
@@ -2241,7 +2248,7 @@ th10_compile(
 	}
 
 	//And now, we write. No seeks required.
-    if (!file_write(out, mem, size))
+    if (!file_write(out, mem, memsize))
         return 0;
 
     return 1;
