@@ -260,26 +260,31 @@ print_usage(void)
 int
 main(int argc, char* argv[])
 {
+	fprintf(stdout, "I'm at: 0\n");
     FILE* in = stdin;
     FILE* out = stdout;
     unsigned int version = 0;
     int mode = -1;
     const thecl_module_t* module = NULL;
+	fprintf(stdout, "I'm at: 1\n");
 
     current_input = "(stdin)";
     current_output = "(stdout)";
 
     g_eclmap = eclmap_new();
     atexit(free_globals);
+	fprintf(stdout, "I'm at: 2\n");
 
     argv0 = util_shortname(argv[0]);
     int opt;
     int ind=0;
+	fprintf(stdout, "I'm at: 3\n");
     while(argv[util_optind]) {
         switch(opt = util_getopt(argc, argv, ":c:h:d:Vm:rs")) {
         case 'c':
         case 'd':
         case 'h':
+			fprintf(stdout, "I'm at: 4\n");
             if(mode != -1) {
                 fprintf(stderr,"%s: More than one mode specified\n", argv0);
                 print_usage();
@@ -287,8 +292,10 @@ main(int argc, char* argv[])
             }
             mode = opt;
             version = parse_version(util_optarg);
+			fprintf(stdout, "I'm at: 5\n");
             break;
         case 'm': {
+			fprintf(stdout, "I'm at: 4b\n");
             FILE* map_file = NULL;
             map_file = fopen(util_optarg, "r");
             if (!map_file) {
@@ -298,6 +305,7 @@ main(int argc, char* argv[])
             }
             eclmap_load(version, g_eclmap, map_file, util_optarg);
             fclose(map_file);
+			fprintf(stdout, "I'm at: 5b\n");
             break;
         }
         case 'r':
@@ -310,14 +318,14 @@ main(int argc, char* argv[])
             util_getopt_default(&ind,argv,opt,print_usage);
         }
     }
+	fprintf(stdout, "I'm at: 6\n");
     argc = ind;
     argv[argc] = NULL;
 
     eclmap_rebuild(g_eclmap);
-
-
-	fprintf(stdout, "I have reached: 1");
 	
+	fprintf(stdout, "I'm good!\n");
+
     switch (version) {
     case 6:
     case 7:
@@ -357,7 +365,6 @@ main(int argc, char* argv[])
     case 'c':
     case 'h':
     case 'd': {
-		fprintf(stdout, "I have reached: 2");
         if(g_ecl_rawoutput) {
             if (mode != 'd') {
                 fprintf(stderr, "%s: 'r' option cannot be used while compiling\n", argv0);
@@ -374,8 +381,6 @@ main(int argc, char* argv[])
             fprintf(stderr, "%s: 'h' option can't be used with a pre-th10 version\n", argv0);
             exit(1);
         }
-		
-		fprintf(stdout, "I have reached: 3");
 
         if (argc > 0) {
             current_input = argv[0];
@@ -386,8 +391,6 @@ main(int argc, char* argv[])
                 exit(1);
             }
 			
-			fprintf(stdout, "I have reached: 4");
-			
             if (argc > 1) {
                 current_output = argv[1];
                 out = fopen(argv[1], "wb");
@@ -397,15 +400,10 @@ main(int argc, char* argv[])
                     fclose(in);
                     exit(1);
                 }
-				fprintf(stdout, "I have reached: 5");
             }
         }
-		
-		
-		fprintf(stdout, "I have reached: 6");
 
         if (mode == 'c') {
-			fprintf(stdout, "I have reached: 7");
 #ifdef WIN32
             (void)_setmode(fileno(stdout), _O_BINARY);
 #endif
