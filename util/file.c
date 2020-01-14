@@ -116,7 +116,7 @@ new_write(
 	const void* buffer,
 	size_t size)
 {
-	if(*pos + size < memsize){
+	if(*pos + size <= memsize){
 		memcpy((char *)mem + *pos, buffer, size);
 		*pos += size;
 		return 1;
