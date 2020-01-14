@@ -112,8 +112,6 @@ file_write(
 
 int
 new_write(
-	void* mem,
-	int memsize, 
 	long* pos,
 	const void* buffer)
 {

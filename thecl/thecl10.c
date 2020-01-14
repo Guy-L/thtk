@@ -2090,6 +2090,10 @@ th10_instr_serialize(
     return (unsigned char*)ret;
 }
 
+
+extern void* mem;
+extern unsigned long int memsize;
+
 static int
 th10_compile(
     const thecl_t* ecl,
@@ -2108,7 +2112,6 @@ th10_compile(
 	
 	//My new and current solution is to allocate memory and to dump the raw memory once we're done.
 	
-	void *mem;
     long pos = 0;
 	long *p = &pos;
     unsigned int i;
@@ -2123,52 +2126,52 @@ th10_compile(
 	//which seats reasonably at, at the very least, 4 billion bytes.
 	
 	//Here is the very ugly calculation.
-	unsigned long int size = sizeof(th10_header_t) + sizeof(th10_list_t) + sizeof(anim_names); //todo last sizeof is wrong
-	if(size%4 != 0) size = size + 4 - size % 4;
-	size += sizeof(th10_list_t) + sizeof(ecli_names); //todo last sizeof is wrong
-	if(size%4 != 0) size = size + 4 - size % 4;
-	size += ecl->sub_count * sizeof(uint32_t);
+	memsize = sizeof(th10_header_t) + sizeof(th10_list_t) + sizeof(anim_names); //todo last sizeof is wrong
+	if(memsize%4 != 0) memsize = memsize + 4 - memsize % 4;
+	memsize += sizeof(th10_list_t) + sizeof(ecli_names); //todo last sizeof is wrong
+	if(memsize%4 != 0) memsize = memsize + 4 - memsize % 4;
+	memsize += ecl->sub_count * sizeof(uint32_t);
 	
 	list_for_each(&ecl->subs, sub) {
 		if (sub->forward_declaration || sub->is_inline)
             continue;
 
-        size += strlen(sub->name) + 1;
+        memsize += strlen(sub->name) + 1;
 	}
 	
-	if(size%4 != 0) size = size + 4 - size % 4;
+	if(memsize%4 != 0) memsize += 4 - memsize % 4;
 	
 	list_for_each(&ecl->subs, sub) {
 		if (sub->forward_declaration || sub->is_inline)
             continue;
 
-		size += sizeof(th10_sub_t);
-		list_for_each(&sub->instrs, instr) size += instr->size;
+		memsize += sizeof(th10_sub_t);
+		list_for_each(&sub->instrs, instr) memsize += instr->size;
 	}
 	
-	size += 5;
+	memsize += 5;
 	//And some good measure bytes. TO BE REMOVED.
 	
-	mem = malloc(size);
+	mem = malloc(memsize);
 	if(mem == NULL){
 		fprintf(stderr, "%s: couldn't allocate memory", argv0);
 		return 0;
 	} 
 	
-	if(!new_write(mem, size, p, &header)) return 0;
+	if(!new_write(p, &header)) return 0;
 	header.include_offset = pos;
-	if(!new_write(mem, size, p, &anim_list)) return 0;
+	if(!new_write(p, &anim_list)) return 0;
 	
 	for(i = 0; i < ecl->anim_count; ++i){
-		if(!new_write(mem, size, p, ecl->anim[i])) 
+		if(!new_write(p, ecl->anim[i])) 
 			return 0; //todo im doing array pointers wrong lol
 	}
 	
     if (pos % 4 != 0) pos = pos + 4 - pos % 4;
-	new_write(mem, size, p, &ecli_list);
+	new_write(p, &ecli_list);
 	
 	for(i = 0; i < ecl->ecli_count; ++i){ 
-		if(!new_write(mem, size, p, ecl->ecli_names[i])) 
+		if(!new_write(p, ecl->ecli_names[i])) 
 			return 0; //todo im doing array pointers wrong lol
 	}
 	
@@ -2181,7 +2184,7 @@ th10_compile(
         if (sub->forward_declaration || sub->is_inline)
             continue;
 		
-		if(!new_write(mem, size, p, sub->name)) 
+		if(!new_write(p, sub->name)) 
 			return 0;
     }
 	
@@ -2213,7 +2216,7 @@ th10_compile(
 
         thecl_instr_t* instr;
         sub->offset = pos;
-		if(!new_write(mem, size, p, &sub_header)) 
+		if(!new_write(p, &sub_header)) 
 			return 0;
 		
 		list_for_each(&sub->instrs, instr){
@@ -2221,19 +2224,19 @@ th10_compile(
                 fprintf(stderr, "%s: warning: opcode: id %hu was higher than the maximum %hu\n", argv0, instr->id, max_opcode);
             }
             unsigned char* data = th10_instr_serialize(ecl->version, sub, instr, &ecl->subs, ecl->no_warn);
-			if(!new_write(mem, size, p, data)) return 0; //size = instr->size !!
+			if(!new_write(p, data)) return 0; //size = instr->size !!
             free(data);
 		}
 	}
 	
 	pos = 0;
-	if(!new_write(mem, size, p, &header)) return 0;
+	if(!new_write(p, &header)) return 0;
 	pos = header.include_offset + header.include_length;
 	
 	list_for_each(&ecl->subs, sub) {
         if (sub->forward_declaration || sub->is_inline)
             continue;
-		if(!new_write(mem, size, p, &sub->offset)) 
+		if(!new_write(p, &sub->offset)) 
 			return 0;
 	}
 

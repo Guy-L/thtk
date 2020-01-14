@@ -57,12 +57,12 @@ int file_write(
     const void* buffer,
     size_t size);
 	
+void* mem;
+unsigned long int memsize;
 /* A helper method for writing into memory during compilation,
    which prints an error message upon error.*/
 //TODO: rename and/or move.
 int new_write(
-	void* mem,
-	int memsize, 
 	long* pos, 
 	const void* buffer);
 
