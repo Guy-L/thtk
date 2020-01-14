@@ -315,6 +315,9 @@ main(int argc, char* argv[])
 
     eclmap_rebuild(g_eclmap);
 
+
+	fprintf(stdout, "I have reached: 1");
+	
     switch (version) {
     case 6:
     case 7:
@@ -354,6 +357,7 @@ main(int argc, char* argv[])
     case 'c':
     case 'h':
     case 'd': {
+		fprintf(stdout, "I have reached: 2");
         if(g_ecl_rawoutput) {
             if (mode != 'd') {
                 fprintf(stderr, "%s: 'r' option cannot be used while compiling\n", argv0);
@@ -370,6 +374,8 @@ main(int argc, char* argv[])
             fprintf(stderr, "%s: 'h' option can't be used with a pre-th10 version\n", argv0);
             exit(1);
         }
+		
+		fprintf(stdout, "I have reached: 3");
 
         if (argc > 0) {
             current_input = argv[0];
@@ -380,6 +386,8 @@ main(int argc, char* argv[])
                 exit(1);
             }
 			
+			fprintf(stdout, "I have reached: 4");
+			
             if (argc > 1) {
                 current_output = argv[1];
                 out = fopen(argv[1], "wb");
@@ -389,10 +397,15 @@ main(int argc, char* argv[])
                     fclose(in);
                     exit(1);
                 }
+				fprintf(stdout, "I have reached: 5");
             }
         }
+		
+		
+		fprintf(stdout, "I have reached: 6");
 
         if (mode == 'c') {
+			fprintf(stdout, "I have reached: 7");
 #ifdef WIN32
             (void)_setmode(fileno(stdout), _O_BINARY);
 #endif
