@@ -2156,8 +2156,8 @@ th10_compile(
 		list_for_each(&sub->instrs, instr) memsize += instr->size;
 	}
 	
-	memsize -= 1;
-	//And some good measure bytes. TO BE REMOVED.
+	memsize = 0;
+	//Testing
 	//------------------------------------------
 	
 	mem = malloc(memsize);
