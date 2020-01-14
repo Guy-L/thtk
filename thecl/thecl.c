@@ -405,7 +405,7 @@ main(int argc, char* argv[])
             thecl_t* ecl = module->parse(in, argv[0], version);
             if (!ecl)
                 exit(1);
-            module->create_header(ecl, out); //TODO
+            module->create_header(ecl, out); 
             thecl_free(ecl);
         } else if (mode == 'd') {
 #ifdef WIN32
@@ -415,7 +415,7 @@ main(int argc, char* argv[])
             if (!ecl)
                 exit(1);
             module->trans(ecl);
-            module->dump(ecl, out); //TODO
+            module->dump(ecl, out);
             thecl_free(ecl);
         }
 		
