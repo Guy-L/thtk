@@ -64,7 +64,8 @@ unsigned long int memsize;
 //TODO: rename and/or move.
 int new_write(
 	long* pos, 
-	const void* buffer);
+	const void* buffer,
+	size_t size);
 
 
 /* Reads a stream until '\0'.  Returns -1 on error. */
