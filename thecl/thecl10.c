@@ -2245,9 +2245,12 @@ th10_compile(
 	}
 
 	//And now, we write. No seeks required.
-	if(!file_seekable(out)) fprintf(out, "\n%s: OUTPUT ------------------\n", argv0);
-    if (!file_write(out, mem, memsize))
+	if(!file_seekable(out)) fprintf(out, "%s: OUTPUT ------------------\n", argv0);
+    if (!file_write(out, mem, memsize)){
+		if(!file_seekable(out)) fprintf(out, "\n%s: -------------------------\n", argv0);
+		free(mem);
         return 0;
+	}
 	
 	free(mem);
     return 1;

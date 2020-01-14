@@ -260,31 +260,26 @@ print_usage(void)
 int
 main(int argc, char* argv[])
 {
-	fprintf(stdout, "I'm at: 0\n");
     FILE* in = stdin;
     FILE* out = stdout;
     unsigned int version = 0;
     int mode = -1;
     const thecl_module_t* module = NULL;
-	fprintf(stdout, "I'm at: 1\n");
 
     current_input = "(stdin)";
     current_output = "(stdout)";
 
     g_eclmap = eclmap_new();
     atexit(free_globals);
-	fprintf(stdout, "I'm at: 2\n");
 
     argv0 = util_shortname(argv[0]);
     int opt;
     int ind=0;
-	fprintf(stdout, "I'm at: 3\n");
     while(argv[util_optind]) {
         switch(opt = util_getopt(argc, argv, ":c:h:d:Vm:rs")) {
         case 'c':
         case 'd':
         case 'h':
-			fprintf(stdout, "I'm at: 4\n");
             if(mode != -1) {
                 fprintf(stderr,"%s: More than one mode specified\n", argv0);
                 print_usage();
@@ -292,10 +287,8 @@ main(int argc, char* argv[])
             }
             mode = opt;
             version = parse_version(util_optarg);
-			fprintf(stdout, "I'm at: 5\n");
             break;
         case 'm': {
-			fprintf(stdout, "I'm at: 4b\n");
             FILE* map_file = NULL;
             map_file = fopen(util_optarg, "r");
             if (!map_file) {
@@ -305,7 +298,6 @@ main(int argc, char* argv[])
             }
             eclmap_load(version, g_eclmap, map_file, util_optarg);
             fclose(map_file);
-			fprintf(stdout, "I'm at: 5b\n");
             break;
         }
         case 'r':
@@ -318,13 +310,12 @@ main(int argc, char* argv[])
             util_getopt_default(&ind,argv,opt,print_usage);
         }
     }
-	fprintf(stdout, "I'm at: 6\n");
     argc = ind;
     argv[argc] = NULL;
 
     eclmap_rebuild(g_eclmap);
 	
-	fprintf(stdout, "I'm good!\n");
+	fprintf(stdout, "I'm at 0\n");
 
     switch (version) {
     case 6:
@@ -359,6 +350,9 @@ main(int argc, char* argv[])
             exit(1);
         }
     }
+	
+	
+	fprintf(stdout, "I'm at 1\n");
 
     switch (mode)
     {
@@ -390,6 +384,8 @@ main(int argc, char* argv[])
                     argv0, argv[0], strerror(errno));
                 exit(1);
             }
+	
+			fprintf(stdout, "I'm at 2\n");
 			
             if (argc > 1) {
                 current_output = argv[1];
@@ -400,8 +396,11 @@ main(int argc, char* argv[])
                     fclose(in);
                     exit(1);
                 }
+				fprintf(stdout, "I'm at 2\n");
             }
         }
+		
+		fprintf(stdout, "I'm at 3\n");
 
         if (mode == 'c') {
 #ifdef WIN32
