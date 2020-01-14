@@ -1928,7 +1928,7 @@ th10_parse(
     state.path_stack = NULL;
     path_add(&state, filename);
 
-    //yyin = in;
+    if (file_seekable(in)) yyin = in;
 
     if (yyparse(&state) != 0)
         return 0;
@@ -2245,6 +2245,7 @@ th10_compile(
 	}
 
 	//And now, we write. No seeks required.
+	if(!file_seekable(out)) fprintf(out, "%s: OUTPUT ------------------", argv0);
     if (!file_write(out, mem, memsize))
         return 0;
 	
